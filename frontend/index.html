@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZImageTurbo</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<!-- ── Loading View ──────────────────────────────────────────── -->
+<div id="view-loading" class="view">
+  <div class="spinner"></div>
+  <p class="loading-text" id="loading-text">Starting ComfyUI…</p>
+  <div class="log-box hidden" id="loading-log"></div>
+</div>
+
+<!-- ── Setup View ────────────────────────────────────────────── -->
+<div id="view-setup" class="view hidden">
+  <div class="setup-card">
+    <h1>ZImageTurbo Setup</h1>
+    <p class="subtitle">One-time configuration to connect your ComfyUI installation.</p>
+
+    <!-- Step 1: Locate ComfyUI -->
+    <div id="setup-step-1" class="setup-step active">
+      <p class="field-label" style="margin-bottom:12px">
+        Select your ComfyUI installation folder:
+      </p>
+      <div id="candidate-list" class="candidate-list">
+        <p style="color:var(--text-muted);font-size:13px">Scanning…</p>
+      </div>
+      <div class="divider">or enter path manually</div>
+      <div class="path-input-row">
+        <input type="text" id="manual-path" placeholder="C:\ComfyUI">
+        <button class="btn-setup" onclick="App.useManualPath()">Use</button>
+      </div>
+      <p id="setup-error" class="setup-error hidden"></p>
+    </div>
+
+    <!-- Step 2: Verify Models -->
+    <div id="setup-step-2" class="setup-step">
+      <p class="field-label" style="margin-bottom:12px">
+        Verify required model files:
+      </p>
+      <div id="model-list" class="model-list"></div>
+      <p id="models-note" class="setup-note"></p>
+      <div class="setup-footer">
+        <button class="btn-link" onclick="App.goToStep(1)">← Back</button>
+        <button class="btn-setup" id="btn-launch" onclick="App.launch()" disabled>
+          Start App
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main View ─────────────────────────────────────────────── -->
+<div id="view-main" class="view hidden">
+
+  <header>
+    <span class="app-title">Z<span>Image</span>Turbo</span>
+    <div class="status-indicator">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="status-text">Connecting…</span>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- Image output panel -->
+    <div id="image-panel">
+      <div class="img-placeholder" id="img-placeholder">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="m21 15-5-5L5 21"/>
+        </svg>
+        <p>Your image will appear here</p>
+      </div>
+      <img id="output-img" alt="Generated image">
+    </div>
+
+    <!-- Progress bar -->
+    <div id="progress-wrap" class="hidden">
+      <div id="progress-label">
+        <span id="progress-node-label">Generating…</span>
+        <span id="progress-steps"></span>
+      </div>
+      <div class="progress-track">
+        <div id="progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Error banner -->
+    <div id="error-banner" class="hidden"></div>
+
+    <!-- Post-generation actions -->
+    <div id="post-actions" class="post-actions hidden">
+      <button class="btn-secondary" onclick="App.downloadImage()">↓ Download</button>
+      <button class="btn-secondary" onclick="App.rollSeed()">↺ New Seed</button>
+    </div>
+
+    <!-- Prompt -->
+    <div class="control-group">
+      <label class="field-label" for="prompt">Prompt</label>
+      <textarea id="prompt" rows="3"
+        placeholder="Describe the image you want to generate…"></textarea>
+    </div>
+
+    <!-- Filename prefix -->
+    <div class="control-group">
+      <label class="field-label" for="filename-prefix">Filename Prefix</label>
+      <input type="text" id="filename-prefix" value="z-image"
+             placeholder="z-image" maxlength="64">
+    </div>
+
+    <!-- Dimensions + Steps -->
+    <div class="row">
+      <div class="control-group">
+        <label class="field-label" for="width">Width</label>
+        <select id="width">
+          <option>512</option>
+          <option>720</option>
+          <option>768</option>
+          <option>832</option>
+          <option selected>1024</option>
+          <option>1080</option>
+          <option>1152</option>
+          <option>1280</option>
+          <option>1440</option>
+          <option>1536</option>
+          <option>1920</option>
+          <option>2048</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label class="field-label" for="height">Height</label>
+        <select id="height">
+          <option>512</option>
+          <option>720</option>
+          <option>768</option>
+          <option>832</option>
+          <option selected>1024</option>
+          <option>1080</option>
+          <option>1152</option>
+          <option>1280</option>
+          <option>1440</option>
+          <option>1536</option>
+          <option>1920</option>
+          <option>2048</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label class="field-label" for="steps">Steps</label>
+        <input type="number" id="steps" value="9" min="1" max="50">
+      </div>
+    </div>
+
+    <!-- Seed -->
+    <div class="control-group">
+      <label class="field-label" for="seed">Seed</label>
+      <div class="seed-row">
+        <input type="number" id="seed" min="0" max="4294967295">
+        <button class="icon-btn" onclick="App.rollSeed()" title="Randomize seed">🎲</button>
+      </div>
+    </div>
+
+    <!-- Toggles -->
+    <div class="toggle-row">
+      <label class="toggle-item">
+        <input type="checkbox" id="pixel-art">
+        <span>Pixel Art Style (LoRA)</span>
+      </label>
+      <label class="toggle-item">
+        <input type="checkbox" id="auto-randomize" checked>
+        <span>Randomize seed after each generation</span>
+      </label>
+    </div>
+
+    <!-- Generate button -->
+    <button class="btn-primary" id="btn-generate" onclick="App.generate()">
+      Generate Image
+    </button>
+
+  </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
