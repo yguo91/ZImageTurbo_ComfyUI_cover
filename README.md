@@ -33,7 +33,11 @@ Download links are shown in the setup wizard on first run.
 
 ## Getting Started
 
-1. Clone or download this repository
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/yguo91/ZImageTurbo_ComfyUI_cover.git
+   cd ZImageTurbo_ComfyUI_cover
+   ```
 2. Double-click `run.bat`
 3. On first run, the setup wizard will open in your browser:
    - Select your ComfyUI installation folder
